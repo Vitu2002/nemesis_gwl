@@ -58,7 +58,7 @@ jobs:
             # Compress for Windows
             - name: Compress binary (Windows)
               if: ${{ startsWith(matrix.os, 'windows') }}
-              run: Compress-Archive -Path dist\* -DestinationPath build-windows.zip
+              run: Compress-Archive -Path dist\* -DestinationPath build-windows-latest.zip
 
             # Upload artifact to GitHub
             - name: Upload artifact
