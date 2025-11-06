@@ -1,0 +1,54 @@
+name: Build Bun Server
+
+on:
+    push:
+        branches: [main]
+    workflow_dispatch:
+
+jobs:
+    build:
+        name: Build for ${{ matrix.os }}
+        runs-on: ${{ matrix.os }}
+        strategy:
+            matrix:
+                include:
+                    - os: ubuntu-latest
+                      target: linux
+                      ext: ''
+                    - os: windows-latest
+                      target: windows
+                      ext: '.exe'
+                    - os: macos-latest
+                      target: macos
+                      ext: ''
+
+        steps:
+            - name: Checkout code
+              uses: actions/checkout@v4
+
+            - name: Install Bun
+              uses: oven-sh/setup-bun@v2
+              with:
+                  bun-version: latest
+
+            - name: Install dependencies
+              run: bun install --frozen-lockfile
+
+            - name: Build binary
+              run: |
+                  mkdir -p dist
+                  bun build src/server.ts --compile --outfile dist/server${{ matrix.ext }}
+
+            - name: Copy public folder
+              run: cp -r public dist/public
+
+            - name: Compress artifact
+              run: |
+                  cd dist
+                  zip -r ../server-${{ matrix.target }}.zip .
+
+            - name: Upload artifact
+              uses: actions/upload-artifact@v4
+              with:
+                  name: server-${{ matrix.target }}
+                  path: server-${{ matrix.target }}.zip
