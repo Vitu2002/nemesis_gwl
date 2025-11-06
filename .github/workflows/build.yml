@@ -40,15 +40,26 @@ jobs:
                   bun build src/server.ts --compile --outfile dist/server${{ matrix.ext }}
 
             - name: Copy public folder
-              run: cp -r public dist/public
-
-            - name: Compress artifact
               run: |
-                  cd dist
-                  zip -r ../server-${{ matrix.target }}.zip .
+                  if [ "${{ matrix.os }}" = "windows-latest" ]; then
+                    powershell -Command "Copy-Item public dist/public -Recurse"
+                  else
+                    cp -r public dist/public
+                  fi
 
+            # Compress for Linux/macOS
+            - name: Compress binary (Linux/macOS)
+              if: ${{ !startsWith(matrix.os, 'windows') }}
+              run: zip -r build-${{ matrix.os }}.zip dist/
+
+            # Compress for Windows
+            - name: Compress binary (Windows)
+              if: ${{ startsWith(matrix.os, 'windows') }}
+              run: Compress-Archive -Path dist\* -DestinationPath build-windows.zip
+
+            # Upload artifact to GitHub
             - name: Upload artifact
               uses: actions/upload-artifact@v4
               with:
-                  name: server-${{ matrix.target }}
-                  path: server-${{ matrix.target }}.zip
+                  name: build-${{ matrix.os }}
+                  path: build-${{ matrix.os }}.zip
