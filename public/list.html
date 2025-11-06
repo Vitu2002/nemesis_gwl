@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Dados de {{GUILD_NAME}}</title>
+        <link rel="stylesheet" href="/public/styles.css" />
+        <link rel="icon" href="/public/favicon.png" type="image/png" />
+    </head>
+    <body>
+        <header class="guild-header">
+            <div class="guild-info">
+                <img
+                    src="https://baiaksp.online/guild_image.php?id={{GUILD_ID}}"
+                    alt="{{GUILD_NAME}}"
+                    class="guild-logo"
+                />
+                <div>
+                    <h1>{{GUILD_NAME}}</h1>
+                    <p class="desc">"{{GUILD_DESC}}"</p>
+                </div>
+            </div>
+            <div class="guild-stats">
+                <span>Online: <b>{{ONLINE}}</b></span>
+                <span>Membros: <b>{{MEMBERS}}</b> / {{MAX_MEMBERS}}</span>
+            </div>
+        </header>
+        <div class="sort-buttons">
+            <a id="sort-resets" href="?sort=resets">Resets</a>
+            <a id="sort-vocation" href="?sort=vocation">Vocação</a>
+            <a id="sort-alphabetical" href="?sort=alphabetical">Alfabética</a>
+        </div>
+
+        <main class="content">
+            <h2>Membros</h2>
+            <div id="characters" class="members-grid" id="membersGrid">
+                <div id="loading" class="loading">
+                    <div class="spinner"></div>
+                    <p>Carregando membros...</p>
+                </div>
+                <!-- {{MEMBERS}} -->
+            </div>
+        </main>
+    </body>
+    <script>
+        const section = document.getElementById('characters');
+        const loading = document.getElementById('loading');
+        const copySection = document.getElementById('copy-section');
+        const copyBtn = document.getElementById('copy-btn');
+        const copyStatus = document.getElementById('copy-status');
+        const textarea = document.getElementById('char-list');
+
+        // Escuta o sinal vindo do servidor (fim do streaming)
+        window.addEventListener('guild:done', () => {
+            loading.remove();
+            copySection.style.display = 'block';
+
+            // coleta nomes de todos os personagens
+            const names = Array.from(section.querySelectorAll('.card h3')).map(e =>
+                e.textContent.trim()
+            );
+            textarea.value = names.join('\\n');
+        });
+
+        copyBtn.addEventListener('click', async () => {
+            await navigator.clipboard.writeText(textarea.value);
+            copyStatus.style.display = 'block';
+            setTimeout(() => (copyStatus.style.display = 'none'), 2000);
+        });
+    </script>
+    <script>
+        // detecta o parâmetro sort na URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const sortParam = urlParams.get('sort') || 'alphabetical';
+
+        // aplica a classe 'active' ao botão correspondente
+        document.querySelectorAll('.sort-buttons a').forEach(btn => {
+            if (btn.id === 'sort-' + sortParam) {
+                btn.classList.add('active');
+            }
+
+            // clique em botão atualiza a URL
+            btn.addEventListener('click', () => {
+                urlParams.set('sort', btn.dataset.sort);
+                window.location.search = urlParams.toString();
+            });
+        });
+    </script>
+    <footer class="site-footer">
+        <div class="footer-content">
+            <p>Desenvolvido por <a href="https://vitu202.dev" target="_blank">Vitu2002</a></p>
+            <p>© 2025 ~ 2026 Todos os direitos reservados</p>
+        </div>
+    </footer>
+</html>
