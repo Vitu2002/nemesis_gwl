@@ -39,13 +39,16 @@ jobs:
                   mkdir -p dist
                   bun build src/server.ts --compile --outfile dist/server${{ matrix.ext }}
 
-            - name: Copy public folder
-              run: |
-                  if [ "${{ matrix.os }}" = "windows-latest" ]; then
-                    powershell -Command "Copy-Item public dist/public -Recurse"
-                  else
-                    cp -r public dist/public
-                  fi
+            # Copy public folder (Linux/macOS)
+            - name: Copy public folder (Linux/macOS)
+              if: ${{ !startsWith(matrix.os, 'windows') }}
+              run: cp -r public dist/public
+
+            # Copy public folder (Windows)
+            - name: Copy public folder (Windows)
+              if: ${{ startsWith(matrix.os, 'windows') }}
+              shell: pwsh
+              run: Copy-Item public dist/public -Recurse
 
             # Compress for Linux/macOS
             - name: Compress binary (Linux/macOS)
